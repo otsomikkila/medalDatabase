@@ -25,12 +25,32 @@ int checkInput(int n, char* input) {
     return (count == n);
 }
 
+void* getTokens(char* input, char* tokens[], int n) {
+    int i = 0; 
 
+    tokens[i] = strtok(input, " ");
+
+    while (tokens[i] != NULL && i < n - 1) { 
+        i++;
+        tokens[i] = strtok(NULL, " ");
+    }
+    return 0;
+}
+//strtok the input string to get an array of arguments
 
 int addCountry(char* input, struct Country* first) {
+    char* tokens[2];
+    getTokens(input, tokens, 2);
+    
+    printf("1: %s\n", tokens[0]);
+    printf("2: %s\n", tokens[1]);
+
     if (first == NULL) {
         printf("first is null\n");
-        struct Country newCountry = {};
+        //struct Country newCountry = {};
+    }
+    else {
+        //iterate through and check there is no name that is the same
     }
     printf("ADD\n");
     return 0;
@@ -50,7 +70,7 @@ int main(void) {
 
         strcpy(copyInput, userInput);
         char* cp = strtok(copyInput, " \n");
-        
+
         if (!cp || strlen(cp) > 1) {
             printf("Invalid command %s\n", userInput);
             continue;
@@ -58,8 +78,6 @@ int main(void) {
 
         char command = cp[0];
         
-        struct Country test[2] = { NULL };
-
         switch (command)
         {
         case 'A':
