@@ -18,75 +18,88 @@ int checkInput(int n, char* input) {
         count++;
     }
 
+    if (count != n) {
+        printf("Invalid command %s\n", inputCopy);
+    }
+
     return (count == n);
 }
 
-int main(void) {
 
+
+int addCountry(char* input, struct Country* first) {
+    if (first == NULL) {
+        printf("first is null\n");
+        struct Country newCountry = {};
+    }
+    printf("ADD\n");
+    return 0;
+}
+
+int main(void) {
     //A buffer where to store user input, size is the maximum size given on the assignment
     char userInput[1000];
+    char copyInput[1000];
+
+    //pointer to first item in linked list
+    struct Country* first = { NULL };
+    //printf("%s", first->name);
     
     while(1) {
         fgets(userInput, sizeof(userInput), stdin);
 
-        char command = userInput[0];
-        struct Country test[2] = {};
+        strcpy(copyInput, userInput);
+        char* cp = strtok(copyInput, " \n");
+        
+        if (!cp || strlen(cp) > 1) {
+            printf("Invalid command %s\n", userInput);
+            continue;
+        }
+
+        char command = cp[0];
+        
+        struct Country test[2] = { NULL };
 
         switch (command)
         {
         case 'A':
             if(!checkInput(2, userInput)) {
-                printf("ERROR\n");
                 continue;
             }
-            printf("TOIMII\n");
-            //initialize new country and add it to the list
-            //initialize values
-            test[0].gold = 0;
-            test[0].silver = 0;
-            test[0].bronze = 0;
-
-
-            //add to the linked list
-            printf("ADD\n");
-            continue;
+            addCountry(userInput, first);
+            break;
         case 'M':
             if(!checkInput(5, userInput)) {
-                printf("ERROR\n");
                 continue;
             }
             printf("MEDAL\n");
-            continue;
+            break;
         case 'L':
             if(!checkInput(1, userInput)) {
-                printf("ERROR\n");
                 continue;
             }
             printf("LIST\n");
-            continue;
+            break;
         case 'W':
             if(!checkInput(2, userInput)) {
-                printf("ERROR\n");
                 continue;
             }
             printf("WRITE\n");
-            continue;
+            break;
         case 'O':
             if(!checkInput(2, userInput)) {
-                printf("ERROR\n");
                 continue;
             }
             printf("LOAD\n");
-            continue;
+            break;
         case 'Q':
             if(!checkInput(1, userInput)) {
-                printf("ERROR\n");
                 continue;
             }
             printf("QUIT\n");
             return 0;
         default:
-            printf("Invalid command %c\n", command);
+            printf("Invalid command %s\n", userInput);
         }
     }
 }
