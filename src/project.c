@@ -1,6 +1,7 @@
 #include "project.h"
 #include "stdio.h"
 #include "string.h"
+#include "stdlib.h"
 
 //Linked list?
 //add a function to check from user input that it has the exact amount of parameters the command needs
@@ -17,11 +18,6 @@ int checkInput(int n, char* input) {
         cp = strtok(NULL, " ");
         count++;
     }
-
-    if (count != n) {
-        printf("Invalid command %s\n", inputCopy);
-    }
-
     return (count == n);
 }
 
@@ -38,22 +34,47 @@ void* getTokens(char* input, char* tokens[], int n) {
 }
 //strtok the input string to get an array of arguments
 
-int addCountry(char* input, struct Country* first) {
+//return the pointer to the first element
+struct Country* addCountry(char* input, struct Country* first) {
     char* tokens[2];
     getTokens(input, tokens, 2);
     
-    printf("1: %s\n", tokens[0]);
-    printf("2: %s\n", tokens[1]);
+    int size = strlen(tokens[1]) + 1;
+    //printf("1: %s\n", tokens[0]);
+    //printf("2: %s\n", tokens[1]);
 
-    if (first == NULL) {
-        printf("first is null\n");
-        //struct Country newCountry = {};
+    //iterate through list and check that name is not there
+    //always add name to last place
+    struct Country* iterator = first;
+    //printf("%s", iterator->name);
+    if (iterator != NULL) {
+        printf("first was not null\n");
+        while (iterator->next != NULL) {
+            printf("%s\n", iterator->name);
+            if (strcmp(iterator->name, &input[1]) == 0) {
+                printf("Country already in chart\n");
+                return NULL;
+            }
+            iterator = iterator->next;
+        }
+    }
+
+    struct Country* newCountry = malloc(sizeof(struct Country));
+    newCountry->name = malloc(size);
+    memcpy(newCountry->name, tokens[1], size);
+    newCountry->gold = 0;
+    newCountry->silver = 0;
+    newCountry->bronze = 0;
+    newCountry->next = NULL;
+
+    if (first != NULL) {
+        iterator->next = newCountry;
+        printf("NEXT: %s", iterator->next->name);
+        return first;
     }
     else {
-        //iterate through and check there is no name that is the same
+        return newCountry;
     }
-    printf("ADD\n");
-    return 0;
 }
 
 int main(void) {
@@ -63,7 +84,6 @@ int main(void) {
 
     //pointer to first item in linked list
     struct Country* first = { NULL };
-    //printf("%s", first->name);
     
     while(1) {
         fgets(userInput, sizeof(userInput), stdin);
@@ -71,6 +91,7 @@ int main(void) {
         strcpy(copyInput, userInput);
         char* cp = strtok(copyInput, " \n");
 
+        //check that the command exists and is only 1 char long
         if (!cp || strlen(cp) > 1) {
             printf("Invalid command %s\n", userInput);
             continue;
@@ -82,41 +103,61 @@ int main(void) {
         {
         case 'A':
             if(!checkInput(2, userInput)) {
-                continue;
+                printf("Too many arguments\n");
+                break;
             }
-            addCountry(userInput, first);
+            first = addCountry(userInput, first);
+            if(first) {
+                printf("first: %s", first->name);
+                printf("first: %i\n", first->gold);
+                printf("first: %i\n", first->silver);
+                printf("first: %i\n", first->bronze);
+                if(first->next) {
+                    printf("first next: %s\n", first->next->name);
+                }
+                else {
+                    printf("first next: null\n");
+                }
+            }
+            else {
+                printf("First element is NULL\n");
+            }
             break;
-        case 'M':
+        case 'M':   //not implemented
             if(!checkInput(5, userInput)) {
                 continue;
             }
             printf("MEDAL\n");
             break;
-        case 'L':
+        case 'L':   //not implemented
             if(!checkInput(1, userInput)) {
                 continue;
             }
             printf("LIST\n");
             break;
-        case 'W':
+        case 'W':   //not implemented
             if(!checkInput(2, userInput)) {
                 continue;
             }
             printf("WRITE\n");
             break;
-        case 'O':
+        case 'O':   //not implemented
             if(!checkInput(2, userInput)) {
                 continue;
             }
             printf("LOAD\n");
             break;
-        case 'Q':
+        case 'Q':   //not fully implemented
             if(!checkInput(1, userInput)) {
                 continue;
             }
-            printf("QUIT\n");
+            free(first->name);
+            free(first->next);
+            free(first);
+            printf("SUCCESS\n");
             return 0;
         default:
+            //ERROR with input A CHINA M, or input that has correct first statement but too many arguments
             printf("Invalid command %s\n", userInput);
         }
     }
