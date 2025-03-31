@@ -34,28 +34,30 @@ void* getTokens(char* input, char* tokens[], int n) {
 }
 //strtok the input string to get an array of arguments
 
-//return the pointer to the first element
+//return the pointer to the first element or NULL if the country already exists in the linked list
 struct Country* addCountry(char* input, struct Country* first) {
     char* tokens[2];
     getTokens(input, tokens, 2);
     
     int size = strlen(tokens[1]) + 1;
-    //printf("1: %s\n", tokens[0]);
-    //printf("2: %s\n", tokens[1]);
 
-    //iterate through list and check that name is not there
-    //always add name to last place
     struct Country* iterator = first;
-    //printf("%s", iterator->name);
+
+    //if multiple countries in database, check there will be no duplicates
     if (iterator != NULL) {
         printf("first was not null\n");
         while (iterator->next != NULL) {
             printf("%s\n", iterator->name);
-            if (strcmp(iterator->name, &input[1]) == 0) {
+            if (strcmp(iterator->name, tokens[1]) == 0) {
                 printf("Country already in chart\n");
                 return NULL;
             }
             iterator = iterator->next;
+        }
+        //check the last node
+        if (strcmp(iterator->name, tokens[1]) == 0) {
+            printf("Country already in chart\n");
+            return NULL;
         }
     }
 
@@ -106,12 +108,12 @@ int main(void) {
                 printf("Too many arguments\n");
                 break;
             }
-            first = addCountry(userInput, first);
-            if(first) {
+            struct Country* result;
+            //should this be first saved to result and added afterwards??
+            result = addCountry(userInput, first);
+            if(result) {
+                first = result;
                 printf("first: %s", first->name);
-                printf("first: %i\n", first->gold);
-                printf("first: %i\n", first->silver);
-                printf("first: %i\n", first->bronze);
                 if(first->next) {
                     printf("first next: %s\n", first->next->name);
                 }
@@ -120,7 +122,7 @@ int main(void) {
                 }
             }
             else {
-                printf("First element is NULL\n");
+                printf("FAIL\n");
             }
             break;
         case 'M':   //not implemented
