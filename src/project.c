@@ -100,6 +100,13 @@ void printToStream(struct Country* first, char* filename) {
     if(filename != NULL) fclose(fp);
 }
 
+void writeToFile(struct Country* first, char* input) {
+    char* tokens[2];
+    getTokens(input, tokens, 2);
+    puts(tokens[1]);
+    printToStream(first, tokens[1]);
+}
+
 int main(void) {
     //A buffer where to store user input, size is the maximum size given on the assignment
     char userInput[1000];
@@ -152,12 +159,13 @@ int main(void) {
             printToStream(first, NULL);
             printf("SUCCESS\n");
             break;
-        case 'W':   //not implemented
+        case 'W':
             if(!checkInput(2, userInput)) {
                 printf("Too many arguments\n");
                 break;
             }
-            printf("WRITE\n");
+            writeToFile(first, userInput);
+            printf("SUCCESS\n");
             break;
         case 'O':   //not implemented
             if(!checkInput(2, userInput)) {
