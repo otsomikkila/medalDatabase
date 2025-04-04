@@ -4,5 +4,12 @@
 			"name": "Project",
 			"path": "."
 		},
-	]
+	],
+	"settings": {
+		"files.associations": {
+			"chrono": "c",
+			"typeindex": "c",
+			"typeinfo": "c"
+		}
+	}
 }

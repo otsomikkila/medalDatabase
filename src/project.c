@@ -7,8 +7,8 @@
 //use strtok for it
 
 //last update:
-//the L method working and general stream print function
-//next: W using the printToStream
+//started M function left of at line 111
+//next: common helper that also O can use AddToMiddle(name, gold, silver, bronze)
 
 int checkInput(int n, char* input) {
     char inputCopy[1000];
@@ -86,11 +86,8 @@ struct Country* addCountry(char* input, struct Country* first) {
 void printToStream(struct Country* first, char* filename) {
     FILE * fp = stdout;
 
-    if (filename != NULL) {
-        printf("filename is not null\n");
-        fp = fopen(filename, "w");
-    }
-    
+    if (filename != NULL) fp = fopen(filename, "w");
+
     struct Country* iterator = first; 
     while (iterator != NULL) {
         fprintf(fp, "%s %i %i %i\n", iterator->name, iterator->gold, iterator->silver, iterator->bronze);
@@ -103,8 +100,54 @@ void printToStream(struct Country* first, char* filename) {
 void writeToFile(struct Country* first, char* input) {
     char* tokens[2];
     getTokens(input, tokens, 2);
-    puts(tokens[1]);
     printToStream(first, tokens[1]);
+}
+
+//modify the addCountry or make a helper that will add a valid country into 
+//the right part of the list
+//return pointer to first, input has already been validated
+struct Country* addWithMedals(struct Country* first, struct Country* modifiedCountry, 
+int gold, int silver, int bronze) {
+    
+    //ensure values cant go below zero
+    modifiedCountry->gold   = CLAMP_TO_ZERO(modifiedCountry->gold + gold);
+    modifiedCountry->silver   = CLAMP_TO_ZERO(modifiedCountry->silver + silver);
+    modifiedCountry->bronze   = CLAMP_TO_ZERO(modifiedCountry->bronze + bronze);
+
+    printf("%s %i %i %i\n", modifiedCountry->name, modifiedCountry->gold, modifiedCountry->silver, modifiedCountry->bronze);
+    return NULL;
+}
+
+//return pointer to first, or null if the country does not exist
+struct Country* addMedals(struct Country* first, char* input) {
+    char* tokens[5];
+    getTokens(input, tokens, 5);
+
+    //get the variables from the array of tokens
+    char* countryName = tokens[1];
+    int gold = (int)strtoul(tokens[2], NULL, 10);
+    int silver = (int)strtoul(tokens[3], NULL, 10);
+    int bronze = (int)strtoul(tokens[4], NULL, 10);
+
+    //check country exists
+    struct Country* iterator = first;
+    struct Country* prev = iterator;
+    
+
+    while (iterator != NULL) {
+        printf("iterator: %s    prev: %s\n", iterator->name, prev->name);
+        if(strcmp(iterator->name, countryName) == 0) {
+            //the previous pointer has to point to iterator->next
+            prev->next = iterator->next;
+
+            //this adds the updated country to correct slot
+            return addWithMedals(first, iterator, gold, silver, bronze);
+        }
+        prev = iterator;
+        iterator = iterator->next;
+    }
+    puts("Country not in database");
+    return NULL;
 }
 
 int main(void) {
@@ -133,7 +176,7 @@ int main(void) {
         {
         case 'A':
             if(!checkInput(2, userInput)) {
-                printf("Too many arguments\n");
+                printf("Invalid amount of arguments\n");
                 break;
             }
             struct Country* result;
@@ -146,14 +189,15 @@ int main(void) {
             break;
         case 'M':   //not implemented
             if(!checkInput(5, userInput)) {
-                printf("Too many arguments\n");
+                printf("Invalid amount of arguments\n");
                 break;
             }
+            addMedals(first, userInput);
             printf("MEDAL\n");
             break;
         case 'L':
             if(!checkInput(1, userInput)) {
-                printf("Too many arguments\n");
+                printf("Invalid amount of arguments\n");
                 break;
             }
             printToStream(first, NULL);
@@ -161,7 +205,7 @@ int main(void) {
             break;
         case 'W':
             if(!checkInput(2, userInput)) {
-                printf("Too many arguments\n");
+                printf("Invalid amount of arguments\n");
                 break;
             }
             writeToFile(first, userInput);
@@ -169,14 +213,14 @@ int main(void) {
             break;
         case 'O':   //not implemented
             if(!checkInput(2, userInput)) {
-                printf("Too many arguments\n");
+                printf("Invalid amount of arguments\n");
                 break;
             }
             printf("LOAD\n");
             break;
         case 'Q':   //not fully implemented
             if(!checkInput(1, userInput)) {
-                printf("Too many arguments\n");
+                printf("Invalid amount of arguments\n");
                 break;
             }
             free(first->name);
@@ -185,7 +229,6 @@ int main(void) {
             printf("SUCCESS\n");
             return 0;
         default:
-            //ERROR with input A CHINA M, or input that has correct first statement but too many arguments
             printf("Invalid command %s\n", userInput);
         }
     }
