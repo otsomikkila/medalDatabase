@@ -7,8 +7,10 @@
 //use strtok for it
 
 //last update:
-//started M function left of at line 111
+//started M function left of at line 148
 //next: common helper that also O can use AddToMiddle(name, gold, silver, bronze)
+//think about the edge cases, first and last
+//adding to anything else requires the country to be moved to the front and then compared against all others
 
 int checkInput(int n, char* input) {
     char inputCopy[1000];
@@ -106,16 +108,45 @@ void writeToFile(struct Country* first, char* input) {
 //modify the addCountry or make a helper that will add a valid country into 
 //the right part of the list
 //return pointer to first, input has already been validated
-struct Country* addWithMedals(struct Country* first, struct Country* modifiedCountry, 
-int gold, int silver, int bronze) {
+struct Country* addWithMedals(struct Country* first, struct Country* modifiedCountry) {
     
-    //ensure values cant go below zero
-    modifiedCountry->gold   = CLAMP_TO_ZERO(modifiedCountry->gold + gold);
-    modifiedCountry->silver   = CLAMP_TO_ZERO(modifiedCountry->silver + silver);
-    modifiedCountry->bronze   = CLAMP_TO_ZERO(modifiedCountry->bronze + bronze);
+    //printf("%s %i %i %i\n", modifiedCountry->name, modifiedCountry->gold, modifiedCountry->silver, modifiedCountry->bronze);
 
-    printf("%s %i %i %i\n", modifiedCountry->name, modifiedCountry->gold, modifiedCountry->silver, modifiedCountry->bronze);
-    return NULL;
+    //loop through the linked list and find the slot where it belongs to
+    //will also need a prev pointer 
+
+    struct Country* iterator = first;
+    struct Country* prev = iterator;
+
+    while (iterator != NULL) {
+        //printf("iterator: %s %i %i %i    newValue: %s %i %i %i\n", iterator->name, iterator->gold, iterator->silver, iterator->bronze, modifiedCountry->name, modifiedCountry->gold, modifiedCountry->silver, modifiedCountry->bronze);
+        if (modifiedCountry->gold > iterator->gold) {
+            //printf("Spot found\n");
+            break;
+        }
+        if ((modifiedCountry->gold == iterator->gold) && (modifiedCountry->silver > iterator->silver)) {
+            //printf("Spot found2\n");
+            break;
+        }
+        if ((modifiedCountry->gold == iterator->gold) && (modifiedCountry->silver == iterator->silver) && (modifiedCountry->bronze > iterator->bronze)) {
+            //printf("Spot found3\n");
+            break;
+        }
+        prev = iterator;
+        iterator = iterator->next;
+    }
+
+    if (iterator == first) {
+        modifiedCountry->next = first;
+        return modifiedCountry;
+    }
+    else {
+        prev->next = modifiedCountry;
+        modifiedCountry->next = iterator;
+        //if first did not move, return it else return new first
+        
+        return first;
+    }
 }
 
 //return pointer to first, or null if the country does not exist
@@ -130,18 +161,32 @@ struct Country* addMedals(struct Country* first, char* input) {
     int bronze = (int)strtoul(tokens[4], NULL, 10);
 
     //check country exists
+    //add NULL to prev othervise doesn't work
     struct Country* iterator = first;
-    struct Country* prev = iterator;
+    struct Country* prev = NULL;
     
 
     while (iterator != NULL) {
-        printf("iterator: %s    prev: %s\n", iterator->name, prev->name);
         if(strcmp(iterator->name, countryName) == 0) {
             //the previous pointer has to point to iterator->next
-            prev->next = iterator->next;
+            //check that not the first case
+
+            //ensure values cant go below zero
+            iterator->gold   = CLAMP_TO_ZERO(iterator->gold + gold);
+            iterator->silver   = CLAMP_TO_ZERO(iterator->silver + silver);
+            iterator->bronze   = CLAMP_TO_ZERO(iterator->bronze + bronze);
+
+            if(!prev) {
+                if (iterator->next) {
+                    first = iterator->next;
+                }
+            }
+            else {
+                prev->next = iterator->next;
+            }
 
             //this adds the updated country to correct slot
-            return addWithMedals(first, iterator, gold, silver, bronze);
+            return addWithMedals(first, iterator);
         }
         prev = iterator;
         iterator = iterator->next;
@@ -171,6 +216,7 @@ int main(void) {
         }
 
         char command = cp[0];
+        struct Country* result; 
         
         switch (command)
         {
@@ -179,7 +225,7 @@ int main(void) {
                 printf("Invalid amount of arguments\n");
                 break;
             }
-            struct Country* result;
+
             result = addCountry(userInput, first);
             
             if(result) {
@@ -187,13 +233,18 @@ int main(void) {
                 printf("SUCCESS\n");
             }
             break;
-        case 'M':   //not implemented
+        case 'M':
             if(!checkInput(5, userInput)) {
                 printf("Invalid amount of arguments\n");
                 break;
             }
-            addMedals(first, userInput);
-            printf("MEDAL\n");
+
+            //save the result 
+            result = addMedals(first, userInput);
+            if(result) {
+                first = result;
+                printf("SUCCESS\n");
+            }
             break;
         case 'L':
             if(!checkInput(1, userInput)) {
