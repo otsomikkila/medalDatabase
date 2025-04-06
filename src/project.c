@@ -7,10 +7,9 @@
 //use strtok for it
 
 //last update:
-//started M function left of at line 148
-//next: common helper that also O can use AddToMiddle(name, gold, silver, bronze)
-//think about the edge cases, first and last
-//adding to anything else requires the country to be moved to the front and then compared against all others
+//M function working 
+//next: O function, use the addMedals method to add to middle
+
 
 int checkInput(int n, char* input) {
     char inputCopy[1000];
@@ -45,8 +44,11 @@ struct Country* addCountry(char* input, struct Country* first) {
     getTokens(input, tokens, 2);
     
     //get rid of '\n' at end of line
-    int size = strlen(tokens[1]);
-    tokens[1][size - 1] = '\0';
+    int len = strlen(tokens[1]);
+    if (tokens[1][len - 1] == '\n') {
+        tokens[1][len - 1] = '\0';
+        len--;
+    }
 
     struct Country* iterator = first;
 
@@ -68,8 +70,9 @@ struct Country* addCountry(char* input, struct Country* first) {
     }
 
     struct Country* newCountry = malloc(sizeof(struct Country));
-    newCountry->name = malloc(size);
-    memcpy(newCountry->name, tokens[1], size);
+    newCountry->name = malloc(len + 1);
+    strcpy(newCountry->name, tokens[1]);
+
     newCountry->gold = 0;
     newCountry->silver = 0;
     newCountry->bronze = 0;
@@ -195,6 +198,17 @@ struct Country* addMedals(struct Country* first, char* input) {
     return NULL;
 }
 
+void* freeList(struct Country* first) {
+    struct Country* temp;
+    while (first != NULL) {
+        temp = first;
+        first = first->next;
+        free(temp->name);
+        free(temp);
+    }
+    return 0;
+}
+
 int main(void) {
     //A buffer where to store user input, size is the maximum size given on the assignment
     char userInput[1000];
@@ -274,9 +288,7 @@ int main(void) {
                 printf("Invalid amount of arguments\n");
                 break;
             }
-            free(first->name);
-            free(first->next);
-            free(first);
+            freeList(first);
             printf("SUCCESS\n");
             return 0;
         default:
