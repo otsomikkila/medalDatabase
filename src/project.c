@@ -2,6 +2,7 @@
 #include "stdio.h"
 #include "string.h"
 #include "stdlib.h"
+#include "ctype.h"
 
 //add a function to check from user input that it has the exact amount of parameters the command needs
 //use strtok for it
@@ -91,8 +92,13 @@ struct Country* addCountry(char* input, struct Country* first) {
 void printToStream(struct Country* first, char* filename) {
     FILE * fp = stdout;
 
-    if (filename != NULL) fp = fopen(filename, "w");
-
+    if (filename != NULL) {
+        fp = fopen(filename, "w");
+        if (fp == NULL) {
+            fprintf(stderr, "Error: Could not open file '%s' for writing.\n", filename);
+            return;
+        }
+    }
     struct Country* iterator = first; 
     while (iterator != NULL) {
         fprintf(fp, "%s %i %i %i\n", iterator->name, iterator->gold, iterator->silver, iterator->bronze);
@@ -152,6 +158,22 @@ struct Country* addWithMedals(struct Country* first, struct Country* modifiedCou
     }
 }
 
+int isNumeric(const char* str) {
+    if (str == NULL || *str == '\0') return 0;
+
+    int i = 0;
+    if (str[i] == '-') i++;
+
+    for (int j = i; str[j] != '\0'; j++) {
+        if (str[j] == '\n') continue;
+        if (!isdigit((unsigned char)str[j])) {
+            return 0;
+        }
+    }
+
+    return 1;
+}
+
 //return pointer to first, or null if the country does not exist
 struct Country* addMedals(struct Country* first, char* input) {
     char* tokens[5];
@@ -159,6 +181,12 @@ struct Country* addMedals(struct Country* first, char* input) {
 
     //get the variables from the array of tokens
     char* countryName = tokens[1];
+
+    if (!isNumeric(tokens[2]) || !isNumeric(tokens[3]) || !isNumeric(tokens[4])) {
+        puts("Number of medals must be numeric values.");
+        return NULL;
+    }
+
     int gold = (int)strtoul(tokens[2], NULL, 10);
     int silver = (int)strtoul(tokens[3], NULL, 10);
     int bronze = (int)strtoul(tokens[4], NULL, 10);
@@ -209,6 +237,60 @@ void* freeList(struct Country* first) {
     return 0;
 }
 
+//return pointer to first, or NULL if error
+struct Country* loadFile(char* input) {
+    char* tokens[2];
+    getTokens(input, tokens, 2);
+
+    FILE *fptr;
+    fptr = fopen(tokens[1], "r");
+
+    if(fptr == NULL) {
+        printf("Cannot open file %s", tokens[1]);
+        return NULL;
+    }
+
+    char result[1000];
+    char* resultTokens[4];
+
+    struct Country* first = NULL;
+
+    //use the add medals on the other ones to get right order
+    while (fgets(result, 1000, fptr)) {
+        //check input before
+        if(!checkInput(4, result)) {
+            printf("Invalid amount of arguments\n");
+            return NULL;
+        }
+        getTokens(result, resultTokens, 4);
+        
+        int len = strlen(resultTokens[0]);
+        struct Country* newCountry = malloc(sizeof(struct Country));
+        newCountry->name = malloc(len + 1);
+        strcpy(newCountry->name, resultTokens[0]);
+    
+        int gold = (int)strtoul(resultTokens[1], NULL, 10);
+        int silver = (int)strtoul(resultTokens[2], NULL, 10);
+        int bronze = (int)strtoul(resultTokens[3], NULL, 10);
+
+        newCountry->gold = CLAMP_TO_ZERO(gold);
+        newCountry->silver = CLAMP_TO_ZERO(silver);
+        newCountry->bronze = CLAMP_TO_ZERO(bronze);
+        newCountry->next = NULL;
+
+        if(first == NULL) {
+            first = newCountry;
+        }
+        else {
+            first = addWithMedals(first, newCountry);
+        }
+
+    }
+    fclose(fptr);
+
+    return first;
+}
+
 int main(void) {
     //A buffer where to store user input, size is the maximum size given on the assignment
     char userInput[1000];
@@ -225,7 +307,7 @@ int main(void) {
 
         //check that the command exists and is only 1 char long
         if (!cp || strlen(cp) > 1) {
-            printf("Invalid command %s\n", userInput);
+            printf("Invalid command %s", userInput);
             continue;
         }
 
@@ -281,9 +363,14 @@ int main(void) {
                 printf("Invalid amount of arguments\n");
                 break;
             }
-            printf("LOAD\n");
+            result = loadFile(userInput);
+            if (result) {
+                freeList(first);
+                first = result;
+                printf("SUCCESS\n");
+            }
             break;
-        case 'Q':   //not fully implemented
+        case 'Q':
             if(!checkInput(1, userInput)) {
                 printf("Invalid amount of arguments\n");
                 break;
@@ -292,7 +379,7 @@ int main(void) {
             printf("SUCCESS\n");
             return 0;
         default:
-            printf("Invalid command %s\n", userInput);
+            printf("Invalid command %s", userInput);
         }
     }
 }
