@@ -111,6 +111,9 @@ void printToStream(struct Country* first, char* filename) {
 void writeToFile(struct Country* first, char* input) {
     char* tokens[2];
     getTokens(input, tokens, 2);
+    tokens[1][strlen(tokens[1]) - 1] = '\0';
+    //printf("%s", tokens[1]);
+
     printToStream(first, tokens[1]);
 }
 
@@ -241,6 +244,14 @@ void* freeList(struct Country* first) {
 struct Country* loadFile(char* input) {
     char* tokens[2];
     getTokens(input, tokens, 2);
+
+    tokens[1][strlen(tokens[1]) - 1] = '\0';
+
+    /*
+    printf("1");
+    printf("%s", tokens[1]);
+    printf("1");
+    */
 
     FILE *fptr;
     fptr = fopen(tokens[1], "r");
